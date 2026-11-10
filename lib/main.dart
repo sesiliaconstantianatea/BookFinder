@@ -45,6 +45,10 @@ class BookFinderApp extends StatelessWidget {
   }
 }
 
+// =====================================================
+// HALAMAN HOME
+// =====================================================
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -91,7 +95,9 @@ class _HomeScreenState extends State<HomeScreen> {
     if (query.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Masukkan judul atau nama penulis buku.'),
+          content: Text(
+            'Masukkan judul atau nama penulis buku.',
+          ),
         ),
       );
       return;
@@ -119,6 +125,15 @@ class _HomeScreenState extends State<HomeScreen> {
     searchController.text = query;
 
     context.read<BookProvider>().searchBooks(query);
+  }
+
+  void openBookDetail(Book book) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => BookDetailScreen(book: book),
+      ),
+    );
   }
 
   @override
@@ -152,7 +167,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               );
             },
-            icon: const Icon(Icons.notifications_none_rounded),
+            icon: const Icon(
+              Icons.notifications_none_rounded,
+            ),
           ),
           const SizedBox(width: 8),
         ],
@@ -170,7 +187,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(20),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment:
+                        CrossAxisAlignment.start,
                     children: [
                       const Text(
                         'Halo, Pecinta Buku! 👋',
@@ -190,13 +208,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(height: 24),
 
-                      // Kolom pencarian buku
+                      // Kolom pencarian
                       TextField(
                         controller: searchController,
                         textInputAction: TextInputAction.search,
                         onSubmitted: (_) => searchBooks(),
                         decoration: InputDecoration(
-                          hintText: 'Cari judul atau penulis buku...',
+                          hintText:
+                              'Cari judul atau penulis buku...',
                           prefixIcon: const Icon(Icons.search),
                           suffixIcon: IconButton(
                             onPressed: searchBooks,
@@ -211,7 +230,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             vertical: 16,
                           ),
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius:
+                                BorderRadius.circular(16),
                             borderSide: BorderSide.none,
                           ),
                         ),
@@ -219,7 +239,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
                       const SizedBox(height: 28),
 
-                      // Judul kategori
                       const Text(
                         'Kategori Buku',
                         style: TextStyle(
@@ -270,7 +289,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                       const SizedBox(height: 28),
 
-                      // Hasil pencarian dari Google Books API
+                      // Hasil pencarian Google Books
                       Consumer<BookProvider>(
                         builder: (context, provider, child) {
                           if (provider.isLoading) {
@@ -287,7 +306,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           if (provider.errorMessage != null) {
                             return Center(
                               child: Padding(
-                                padding: const EdgeInsets.all(24),
+                                padding:
+                                    const EdgeInsets.all(24),
                                 child: Column(
                                   children: [
                                     const Icon(
@@ -359,6 +379,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                   itemBuilder: (context, index) {
                                     return BookCard(
                                       book: provider.books[index],
+                                      onTap: () => openBookDetail(
+                                        provider.books[index],
+                                      ),
                                     );
                                   },
                                 )
@@ -366,8 +389,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ...provider.books.map(
                                   (book) => Padding(
                                     padding:
-                                        const EdgeInsets.only(bottom: 12),
-                                    child: BookCard(book: book),
+                                        const EdgeInsets.only(
+                                      bottom: 12,
+                                    ),
+                                    child: BookCard(
+                                      book: book,
+                                      onTap: () =>
+                                          openBookDetail(book),
+                                    ),
                                   ),
                                 ),
                             ],
@@ -386,13 +415,18 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-// Widget kartu buku
+// =====================================================
+// KARTU BUKU
+// =====================================================
+
 class BookCard extends StatelessWidget {
   final Book book;
+  final VoidCallback onTap;
 
   const BookCard({
     super.key,
     required this.book,
+    required this.onTap,
   });
 
   @override
@@ -422,97 +456,368 @@ class BookCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         side: const BorderSide(color: Colors.black12),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: book.thumbnail.isNotEmpty
-                  ? Image.network(
-                      book.thumbnail.replaceFirst(
-                        'http://',
-                        'https://',
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: book.thumbnail.isNotEmpty
+                    ? Image.network(
+                        book.thumbnail.replaceFirst(
+                          'http://',
+                          'https://',
+                        ),
+                        width: 64,
+                        height: 82,
+                        fit: BoxFit.cover,
+                        errorBuilder:
+                            (context, error, stackTrace) {
+                          return BookCoverPlaceholder(
+                            color: bookColor,
+                            icon: bookIcon,
+                          );
+                        },
+                      )
+                    : BookCoverPlaceholder(
+                        color: bookColor,
+                        icon: bookIcon,
                       ),
-                      width: 64,
-                      height: 82,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return BookCoverPlaceholder(
-                          color: bookColor,
-                          icon: bookIcon,
-                        );
-                      },
-                    )
-                  : BookCoverPlaceholder(
-                      color: bookColor,
-                      icon: bookIcon,
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment:
+                      CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      book.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF25213D),
+                      ),
                     ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    book.title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF25213D),
-                    ),
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    book.authors.isNotEmpty
-                        ? book.authors.join(', ')
-                        : 'Penulis tidak diketahui',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Colors.black54,
-                      fontSize: 13,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF0EDFF),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      category,
+                    const SizedBox(height: 5),
+                    Text(
+                      book.authors.isNotEmpty
+                          ? book.authors.join(', ')
+                          : 'Penulis tidak diketahui',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        fontSize: 11,
-                        color: Color(0xFF5B4BDB),
-                        fontWeight: FontWeight.w600,
+                        color: Colors.black54,
+                        fontSize: 13,
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF0EDFF),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        category,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: Color(0xFF5B4BDB),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const Icon(
-              Icons.chevron_right_rounded,
-              color: Colors.black45,
-            ),
-          ],
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: Colors.black45,
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-// Tampilan pengganti jika gambar sampul tidak tersedia
+// =====================================================
+// HALAMAN DETAIL BUKU
+// =====================================================
+
+class BookDetailScreen extends StatelessWidget {
+  final Book book;
+
+  const BookDetailScreen({
+    super.key,
+    required this.book,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final authors = book.authors.isNotEmpty
+        ? book.authors.join(', ')
+        : 'Penulis tidak diketahui';
+
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: const Color(0xFFF8F7FC),
+        title: const Text(
+          'Detail Buku',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF25213D),
+          ),
+        ),
+        centerTitle: true,
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                maxWidth: 700,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const SizedBox(height: 12),
+
+                  // Sampul buku
+                  Hero(
+                    tag: 'book-${book.id}',
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: book.thumbnail.isNotEmpty
+                          ? Image.network(
+                              book.thumbnail.replaceFirst(
+                                'http://',
+                                'https://',
+                              ),
+                              width: 180,
+                              height: 250,
+                              fit: BoxFit.cover,
+                              errorBuilder:
+                                  (context, error, stackTrace) {
+                                return const BookDetailCoverPlaceholder();
+                              },
+                            )
+                          : const BookDetailCoverPlaceholder(),
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Judul buku
+                  Text(
+                    book.title,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF25213D),
+                    ),
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  // Penulis
+                  Text(
+                    authors,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Colors.black54,
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Informasi buku
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: [
+                      _DetailInfoChip(
+                        icon: Icons.category_rounded,
+                        label: book.category,
+                      ),
+                      _DetailInfoChip(
+                        icon: Icons.calendar_month_rounded,
+                        label: book.publishedDate,
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 32),
+
+                  // Deskripsi
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(
+                        color: Colors.black12,
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment:
+                          CrossAxisAlignment.start,
+                      children: [
+                        const Row(
+                          children: [
+                            Icon(
+                              Icons.menu_book_rounded,
+                              color: Color(0xFF5B4BDB),
+                            ),
+                            SizedBox(width: 10),
+                            Text(
+                              'Deskripsi Buku',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF25213D),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          book.description.isNotEmpty
+                              ? book.description
+                              : 'Deskripsi buku belum tersedia.',
+                          textAlign: TextAlign.justify,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            height: 1.7,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 28),
+
+                  // Tombol kembali
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: FilledButton.icon(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      icon: const Icon(
+                        Icons.arrow_back_rounded,
+                      ),
+                      label: const Text(
+                        'Kembali ke Katalog',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      style: FilledButton.styleFrom(
+                        backgroundColor:
+                            const Color(0xFF5B4BDB),
+                        shape: RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.circular(14),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// Informasi kategori dan tahun terbit
+class _DetailInfoChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _DetailInfoChip({
+    required this.icon,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 14,
+        vertical: 10,
+      ),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF0EDFF),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 16,
+            color: const Color(0xFF5B4BDB),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              color: Color(0xFF5B4BDB),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Sampul pengganti di halaman detail
+class BookDetailCoverPlaceholder extends StatelessWidget {
+  const BookDetailCoverPlaceholder({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 180,
+      height: 250,
+      color: const Color(0xFFE5E1F9),
+      child: const Icon(
+        Icons.menu_book_rounded,
+        size: 80,
+        color: Color(0xFF5B4BDB),
+      ),
+    );
+  }
+}
+
+// =====================================================
+// WIDGET PENDUKUNG
+// =====================================================
+
 class BookCoverPlaceholder extends StatelessWidget {
   final Color color;
   final IconData icon;
@@ -538,7 +843,6 @@ class BookCoverPlaceholder extends StatelessWidget {
   }
 }
 
-// Tampilan ketika belum ada hasil pencarian
 class EmptyBookMessage extends StatelessWidget {
   const EmptyBookMessage({super.key});
 
