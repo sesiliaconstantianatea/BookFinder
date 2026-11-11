@@ -28,6 +28,7 @@ BookFinder merupakan aplikasi mobile yang membantu pengguna mencari informasi bu
 
 ## Struktur Folder
 
+```text
 lib/
 |-- models/
 |-- providers/
@@ -43,6 +44,17 @@ test/
 |-- book_provider_test.dart
 |-- favorite_book_provider_test.dart
 `-- google_books_service_test.dart
+
+docs/
+`-- screenshots/
+    |-- 01_home page.jpeg
+    |-- 02_pencarian.jpeg
+    |-- 03_detail buku.jpeg
+    |-- 04_koleksi favorit.jpeg
+    |-- 05_Tambah favorit.jpeg
+    |-- 06_edit buku.jpeg
+    `-- 07_tentang apk.jpeg
+```
 
 ## Konfigurasi dan Instalasi
 
@@ -74,7 +86,7 @@ Jangan mengunggah kunci API atau konfigurasi rahasia ke repository publik.
 Contoh perintah melalui PowerShell:
 
 ```powershell
-flutter run --dart-define=GOOGLE_BOOKS_API_KEY=ISI_API_KEY --dart-define=SUPABASE_URL=ISI_URL_SUPABASE --dart-define=SUPABASE_PUBLISHABLE_KEY=ISI_PUBLISHABLE_KEY
+flutter run -d 8DKB9X458TX44TXW --dart-define=GOOGLE_BOOKS_API_KEY=AIzaSyD5RrZuQQOh3tVTgAoir4gdEMtrIkoWmAs --dart-define=SUPABASE_URL=https://pczxykwdqoiiqlopyvtk.supabase.co --dart-define=SUPABASE_PUBLISHABLE_KEY=sb_publishable_820AQI6A9puze1gh0wRAbQ_wD82B36Q
 ```
 
 Ganti nilai contoh dengan konfigurasi milik sendiri.
@@ -137,7 +149,7 @@ Hasil pemeriksaan terakhir: tidak ditemukan masalah kode dan seluruh 20 pengujia
 Untuk membuat APK release:
 
 ```powershell
-flutter build apk --release --dart-define=GOOGLE_BOOKS_API_KEY=ISI_API_KEY --dart-define=SUPABASE_URL=ISI_URL_SUPABASE --dart-define=SUPABASE_PUBLISHABLE_KEY=ISI_PUBLISHABLE_KEY
+flutter build apk --release --dart-define=GOOGLE_BOOKS_API_KEY=AIzaSyD5RrZuQQOh3tVTgAoir4gdEMtrIkoWmAs --dart-define=SUPABASE_URL=https://pczxykwdqoiiqlopyvtk.supabase.co --dart-define=SUPABASE_PUBLISHABLE_KEY=sb_publishable_820AQI6A9puze1gh0wRAbQ_wD82B36Q
 ```
 
 Hasil APK berada di:
@@ -145,6 +157,38 @@ Hasil APK berada di:
 ```text
 build/app/outputs/flutter-apk/app-release.apk
 ```
+
+## Dokumentasi Screenshot
+
+Berikut dokumentasi tampilan aplikasi BookFinder pada perangkat Android.
+
+### 1. Halaman Home / Dashboard
+
+![Home Dashboard](docs/screenshots/01_home%20page.jpeg)
+
+### 2. Halaman Pencarian Buku
+
+![Pencarian Buku](docs/screenshots/02_pencarian.jpeg)
+
+### 3. Halaman Detail Buku
+
+![Detail Buku](docs/screenshots/03_detail%20buku.jpeg)
+
+### 4. Halaman Koleksi Favorit
+
+![Koleksi Favorit](docs/screenshots/04_koleksi%20favorit.jpeg)
+
+### 5. Halaman Tambah Favorit
+
+![Tambah Favorit](docs/screenshots/05_Tambah%20favorit.jpeg)
+
+### 6. Halaman Edit Favorit
+
+![Edit Favorit](docs/screenshots/06_edit%20buku.jpeg)
+
+### 7. Halaman Tentang Aplikasi
+
+![Tentang Aplikasi](docs/screenshots/07_tentang%20apk.jpeg)
 
 ## Repository
 
