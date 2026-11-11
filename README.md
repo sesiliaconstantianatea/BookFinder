@@ -208,6 +208,23 @@ Pengujian dilakukan secara langsung pada perangkat Android Vivo Y20 untuk memast
 
 Seluruh fitur utama berhasil diuji dan berjalan sesuai dengan fungsinya.
 
+## Pengujian Otomatis
+
+Pengujian otomatis dilakukan menggunakan Flutter Test dengan hasil:
+
+- Total pengujian: 20 test
+- Status: Seluruh test berhasil
+- Perintah: `flutter test`
+
+Pengujian mencakup:
+1. Parsing JSON model Book.
+2. Parsing JSON model FavoriteBook.
+3. Pengelolaan state BookProvider.
+4. Pengelolaan state FavoriteBookProvider.
+5. GoogleBooksService, termasuk respons berhasil dan penanganan error API.
+
+Hasil akhir: All tests passed!
+
 ## Repository
 
 GitHub: https://github.com/sesiliaconstantianatea/BookFinder
