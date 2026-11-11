@@ -190,6 +190,24 @@ Berikut dokumentasi tampilan aplikasi BookFinder pada perangkat Android.
 
 ![Tentang Aplikasi](docs/screenshots/07_tentang%20apk.jpeg)
 
+
+## Dokumentasi Pengujian Manual
+
+Pengujian dilakukan secara langsung pada perangkat Android Vivo Y20 untuk memastikan fitur aplikasi berjalan dengan baik.
+
+| No. | Fitur yang Diuji | Hasil |
+|---|---|---|
+| 1 | Pencarian buku melalui Google Books API | Berhasil |
+| 2 | Menampilkan detail buku | Berhasil |
+| 3 | Menambahkan buku ke favorit | Berhasil |
+| 4 | Menampilkan daftar buku favorit | Berhasil |
+| 5 | Mengedit catatan dan rating buku | Berhasil |
+| 6 | Menghapus buku favorit | Berhasil |
+| 7 | Navigasi antarhalaman | Berhasil |
+| 8 | Tampilan responsif pada perangkat Android | Berhasil |
+
+Seluruh fitur utama berhasil diuji dan berjalan sesuai dengan fungsinya.
+
 ## Repository
 
 GitHub: https://github.com/sesiliaconstantianatea/BookFinder
