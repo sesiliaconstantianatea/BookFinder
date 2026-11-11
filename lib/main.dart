@@ -1,24 +1,55 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'models/book.dart';
 import 'providers/book_provider.dart';
+import 'providers/favorite_book_provider.dart';
 import 'repositories/book_repository.dart';
+import 'repositories/favorite_book_repository.dart';
 import 'services/google_books_service.dart';
+import 'services/favorite_books_service.dart';
+import 'screens/add_favorite_screen.dart';
+import 'screens/favorite_books_screen.dart';
+import 'screens/about_screen.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Supabase.initialize(
+    url: const String.fromEnvironment('SUPABASE_URL'),
+    publishableKey: const String.fromEnvironment(
+      'SUPABASE_PUBLISHABLE_KEY',
+    ),
+  );
+
   final googleBooksService = GoogleBooksService();
 
   final bookRepository = BookRepository(
     googleBooksService: googleBooksService,
   );
 
+  final favoriteBooksService = FavoriteBooksService();
+
+  final favoriteBookRepository = FavoriteBookRepository(
+    service: favoriteBooksService,
+  );
+
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => BookProvider(
-        repository: bookRepository,
-      ),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => BookProvider(
+            repository: bookRepository,
+          ),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => FavoriteBookProvider(
+            repository: favoriteBookRepository,
+          ),
+        ),
+      ],
       child: const BookFinderApp(),
     ),
   );
@@ -89,10 +120,28 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  void searchBooks() {
-    final query = searchController.text.trim();
+  // Menggabungkan kata kunci dan kategori.
+  // Teks pencarian tidak diganti dengan subject kategori.
+  String buildSearchQuery() {
+    final keyword = searchController.text.trim();
+    final categoryQuery = categoryQueries[selectedCategory];
 
-    if (query.isEmpty) {
+    if (keyword.isEmpty) {
+      return categoryQuery ?? 'books';
+    }
+
+    if (categoryQuery == null) {
+      return keyword;
+    }
+
+    return '$keyword $categoryQuery';
+  }
+
+  // Melakukan pencarian dengan kategori yang sedang aktif.
+  void searchBooks() {
+    final keyword = searchController.text.trim();
+
+    if (keyword.isEmpty && selectedCategory == 'Semua') {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
@@ -103,28 +152,22 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    setState(() {
-      selectedCategory = 'Semua';
-    });
+    FocusScope.of(context).unfocus();
 
-    context.read<BookProvider>().searchBooks(query);
+    context.read<BookProvider>().searchBooks(
+          buildSearchQuery(),
+        );
   }
 
+  // Mengubah kategori tanpa menghapus kata kunci pencarian.
   void selectCategory(String category) {
     setState(() {
       selectedCategory = category;
     });
 
-    if (category == 'Semua') {
-      searchController.clear();
-      context.read<BookProvider>().searchBooks('');
-      return;
-    }
-
-    final query = categoryQueries[category] ?? category;
-    searchController.text = query;
-
-    context.read<BookProvider>().searchBooks(query);
+    context.read<BookProvider>().searchBooks(
+          buildSearchQuery(),
+        );
   }
 
   void openBookDetail(Book book) {
@@ -132,6 +175,24 @@ class _HomeScreenState extends State<HomeScreen> {
       context,
       MaterialPageRoute(
         builder: (context) => BookDetailScreen(book: book),
+      ),
+    );
+  }
+
+  void openFavorites() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const FavoriteBooksScreen(),
+      ),
+    );
+  }
+
+  void openAbout() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const AboutScreen(),
       ),
     );
   }
@@ -160,6 +221,23 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         actions: [
           IconButton(
+            tooltip: 'Koleksi Favorit',
+            onPressed: openFavorites,
+            icon: const Icon(
+              Icons.favorite_rounded,
+              color: Color(0xFF5B4BDB),
+            ),
+          ),
+          IconButton(
+            tooltip: 'Tentang Aplikasi',
+            onPressed: openAbout,
+            icon: const Icon(
+              Icons.info_outline_rounded,
+              color: Color(0xFF5B4BDB),
+            ),
+          ),
+          IconButton(
+            tooltip: 'Notifikasi',
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
@@ -179,16 +257,22 @@ class _HomeScreenState extends State<HomeScreen> {
           builder: (context, constraints) {
             final isWide = constraints.maxWidth >= 600;
 
-            return Center(
+            return Align(
+              alignment: Alignment.topCenter,
               child: ConstrainedBox(
                 constraints: const BoxConstraints(
                   maxWidth: 1100,
                 ),
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.fromLTRB(
+                    20,
+                    20,
+                    20,
+                    20,
+                  ),
                   child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
                         'Halo, Pecinta Buku! 👋',
@@ -208,7 +292,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(height: 24),
 
-                      // Kolom pencarian
+                      // KOLOM PENCARIAN
                       TextField(
                         controller: searchController,
                         textInputAction: TextInputAction.search,
@@ -239,6 +323,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                       const SizedBox(height: 28),
 
+                      // KATEGORI BUKU
                       const Text(
                         'Kategori Buku',
                         style: TextStyle(
@@ -249,7 +334,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(height: 14),
 
-                      // Daftar kategori
                       SizedBox(
                         height: 42,
                         child: ListView.separated(
@@ -289,7 +373,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                       const SizedBox(height: 28),
 
-                      // Hasil pencarian Google Books
+                      // HASIL PENCARIAN
                       Consumer<BookProvider>(
                         builder: (context, provider, child) {
                           if (provider.isLoading) {
@@ -306,8 +390,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           if (provider.errorMessage != null) {
                             return Center(
                               child: Padding(
-                                padding:
-                                    const EdgeInsets.all(24),
+                                padding: const EdgeInsets.all(24),
                                 child: Column(
                                   children: [
                                     const Icon(
@@ -322,7 +405,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                     const SizedBox(height: 8),
                                     TextButton(
-                                      onPressed: searchBooks,
+                                      onPressed: () {
+                                        context
+                                            .read<BookProvider>()
+                                            .searchBooks(
+                                              buildSearchQuery(),
+                                            );
+                                      },
                                       child: const Text('Coba Lagi'),
                                     ),
                                   ],
@@ -362,7 +451,6 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                               const SizedBox(height: 14),
 
-                              // Tampilan responsif
                               if (isWide)
                                 GridView.builder(
                                   shrinkWrap: true,
@@ -388,8 +476,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               else
                                 ...provider.books.map(
                                   (book) => Padding(
-                                    padding:
-                                        const EdgeInsets.only(
+                                    padding: const EdgeInsets.only(
                                       bottom: 12,
                                     ),
                                     child: BookCard(
@@ -490,8 +577,7 @@ class BookCard extends StatelessWidget {
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
@@ -564,6 +650,28 @@ class BookDetailScreen extends StatelessWidget {
     required this.book,
   });
 
+  Future<void> _openAddFavorite(BuildContext context) async {
+    final result = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddFavoriteScreen(book: book),
+      ),
+    );
+
+    if (!context.mounted) return;
+
+    if (result == true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Buku berhasil disimpan ke koleksi favorit.',
+          ),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final authors = book.authors.isNotEmpty
@@ -594,8 +702,6 @@ class BookDetailScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const SizedBox(height: 12),
-
-                  // Sampul buku
                   Hero(
                     tag: 'book-${book.id}',
                     child: ClipRRect(
@@ -617,10 +723,7 @@ class BookDetailScreen extends StatelessWidget {
                           : const BookDetailCoverPlaceholder(),
                     ),
                   ),
-
                   const SizedBox(height: 24),
-
-                  // Judul buku
                   Text(
                     book.title,
                     textAlign: TextAlign.center,
@@ -630,10 +733,7 @@ class BookDetailScreen extends StatelessWidget {
                       color: Color(0xFF25213D),
                     ),
                   ),
-
                   const SizedBox(height: 10),
-
-                  // Penulis
                   Text(
                     authors,
                     textAlign: TextAlign.center,
@@ -642,10 +742,7 @@ class BookDetailScreen extends StatelessWidget {
                       color: Colors.black54,
                     ),
                   ),
-
                   const SizedBox(height: 20),
-
-                  // Informasi buku
                   Wrap(
                     alignment: WrapAlignment.center,
                     spacing: 10,
@@ -661,10 +758,7 @@ class BookDetailScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 32),
-
-                  // Deskripsi
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(20),
@@ -676,8 +770,7 @@ class BookDetailScreen extends StatelessWidget {
                       ),
                     ),
                     child: Column(
-                      crossAxisAlignment:
-                          CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Row(
                           children: [
@@ -711,32 +804,50 @@ class BookDetailScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 28),
-
-                  // Tombol kembali
                   SizedBox(
                     width: double.infinity,
                     height: 52,
                     child: FilledButton.icon(
+                      onPressed: () => _openAddFavorite(context),
+                      icon: const Icon(Icons.favorite),
+                      label: const Text(
+                        'Simpan ke Favorit',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: const Color(0xFF5B4BDB),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: OutlinedButton.icon(
                       onPressed: () {
                         Navigator.pop(context);
                       },
-                      icon: const Icon(
-                        Icons.arrow_back_rounded,
-                      ),
+                      icon: const Icon(Icons.arrow_back_rounded),
                       label: const Text(
                         'Kembali ke Katalog',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      style: FilledButton.styleFrom(
-                        backgroundColor:
-                            const Color(0xFF5B4BDB),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFF5B4BDB),
+                        side: const BorderSide(
+                          color: Color(0xFF5B4BDB),
+                        ),
                         shape: RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.circular(14),
+                          borderRadius: BorderRadius.circular(14),
                         ),
                       ),
                     ),
@@ -751,7 +862,10 @@ class BookDetailScreen extends StatelessWidget {
   }
 }
 
-// Informasi kategori dan tahun terbit
+// =====================================================
+// WIDGET INFORMASI DETAIL
+// =====================================================
+
 class _DetailInfoChip extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -795,7 +909,10 @@ class _DetailInfoChip extends StatelessWidget {
   }
 }
 
-// Sampul pengganti di halaman detail
+// =====================================================
+// WIDGET SAMPUL DETAIL
+// =====================================================
+
 class BookDetailCoverPlaceholder extends StatelessWidget {
   const BookDetailCoverPlaceholder({super.key});
 
