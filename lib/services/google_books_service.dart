@@ -1,6 +1,8 @@
 
 import 'dart:convert';
+
 import 'package:http/http.dart' as http;
+
 import '../models/book.dart';
 
 class GoogleBooksService {
@@ -9,6 +11,11 @@ class GoogleBooksService {
 
   static const String apiKey =
       String.fromEnvironment('GOOGLE_BOOKS_API_KEY');
+
+  final http.Client _client;
+
+  GoogleBooksService({http.Client? client})
+      : _client = client ?? http.Client();
 
   Future<List<Book>> searchBooks(String query) async {
     final uri = Uri.parse(baseUrl).replace(
@@ -19,7 +26,7 @@ class GoogleBooksService {
       },
     );
 
-    final response = await http.get(uri);
+    final response = await _client.get(uri);
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
