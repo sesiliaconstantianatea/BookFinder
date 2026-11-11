@@ -225,6 +225,17 @@ Pengujian mencakup:
 
 Hasil akhir: All tests passed!
 
+## Analisis Kode
+
+Pemeriksaan kualitas kode dilakukan menggunakan perintah:
+
+`flutter analyze`
+
+Hasil pemeriksaan:
+- Status: Berhasil
+- Temuan: No issues found!
+- Tidak ditemukan masalah berdasarkan analisis statis Flutter.
+
 ## Repository
 
 GitHub: https://github.com/sesiliaconstantianatea/BookFinder
